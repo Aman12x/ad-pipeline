@@ -14,6 +14,7 @@ import logging
 import sys
 import uuid
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import duckdb
 
@@ -37,6 +38,7 @@ def main(argv=None) -> int:
     log.info("run %s starting (as_of=%s, window=%dd)",
              run_id, args.as_of, config.WINDOW_DAYS)
 
+    Path(config.DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(config.DB_PATH)
     con.execute(load.DDL)
     con.execute(
