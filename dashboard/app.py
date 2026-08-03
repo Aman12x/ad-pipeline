@@ -9,14 +9,35 @@ where first-party orders haven't landed yet (1-day lag) and platform
 conversions are still immature.
 """
 
+import os
+import tempfile
+from pathlib import Path
+
 import duckdb
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "warehouse.duckdb"
+def _writable(d: Path) -> bool:
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        probe = d / ".write_probe"
+        probe.touch()
+        probe.unlink()
+        return True
+    except OSError:
+        return False
+
+
+# Prefer the repo's data/ dir; on hosts where the source mount is read-only
+# (some cloud deploys), fall back to the system temp dir. Must be decided
+# before any pipeline module is imported -- config reads DATA_DIR from env.
+_repo_data = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = (_repo_data if _writable(_repo_data)
+            else Path(tempfile.gettempdir()) / "ad-pipeline-demo")
+os.environ.setdefault("DATA_DIR", str(DATA_DIR))
+DB_PATH = Path(os.environ["DATA_DIR"]) / "warehouse.duckdb"
 
 # Channel identity colors (validated palette, light mode) -- fixed per entity.
 CHANNEL_COLOR = {"google": "#2a78d6", "meta": "#eb6834"}
