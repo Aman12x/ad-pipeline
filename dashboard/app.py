@@ -54,9 +54,13 @@ def load(query: str) -> pd.DataFrame:
 st.set_page_config(page_title="Ad Analytics", page_icon="📈", layout="wide")
 
 if not DB_PATH.exists():
-    st.error("No warehouse found. Run the pipeline first: "
-             "`python -m pipeline.run` (with the simulator up).")
-    st.stop()
+    # No warehouse (e.g. fresh clone or Streamlit Cloud): build one in-process
+    # by replaying the last 3 daily pipeline runs against the simulator.
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from scripts.seed_demo import seed
+    with st.spinner("First run — seeding demo warehouse (~10s)…"):
+        seed()
 
 channel = load("SELECT * FROM mart_channel_daily ORDER BY stat_date")
 campaign = load("SELECT * FROM mart_campaign_daily ORDER BY stat_date")

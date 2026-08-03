@@ -1,4 +1,2 @@
 pytest>=8.0
-streamlit>=1.35
-plotly>=5.20
-pandas>=2.0
+kaleido>=0.2
