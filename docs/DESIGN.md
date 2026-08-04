@@ -42,10 +42,19 @@ their schema/singular tests) → data-quality gate → record run metadata in
 `pipeline_runs`.
 
 The transform layer lives in `dbt/`: staging tables are declared as dbt
-sources with column tests; `fact_ad_performance_daily` and the two marts are
-models; singular tests enforce cross-column invariants (PK uniqueness,
-clicks ≤ impressions, no negative metrics). A test failure fails the build,
-which fails the run — bad data never reaches the marts.
+sources with column tests; the fact table and marts are models; singular
+tests enforce cross-column invariants (PK uniqueness, clicks ≤ impressions,
+no negative metrics, WoW contribution shares summing to 1). A test failure
+fails the build, which fails the run — bad data never reaches the marts.
+
+### Marts
+
+| Model | Question it answers | SQL of note |
+|---|---|---|
+| `mart_campaign_daily` / `mart_channel_daily` | What are CAC/ROAS/overclaim right now? | — |
+| `mart_campaign_rolling` | Is efficiency trending, and is the creative fatiguing? | 7-day windows (`rows between 6 preceding`), `ctr_vs_peak` via windowed max over the campaign's own history |
+| `mart_channel_pacing` | Will we hit the monthly budget? | MTD running sum vs a budget prorated with `last_day()`; joined to the `monthly_budgets` seed |
+| `mart_campaign_weekly` | Which campaign drove this week's change? | `lag()` per campaign, each campaign's share of the channel's total spend delta (sums to 1 per channel-week, enforced by a singular test) |
 
 ## From raw data to decision
 

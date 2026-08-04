@@ -49,7 +49,7 @@ account is a config change, not a rewrite.
 |---|---|
 | `simulator/` | Fake Google Ads / Meta / orders APIs (FastAPI) |
 | `pipeline/` | Extract → validate → load → quality checks (Python + DuckDB) |
-| `dbt/` | Transform layer: staging → fact → marts as dbt models with data tests |
+| `dbt/` | Transform layer: dbt models with data tests — fact table plus marts for CAC/ROAS, budget pacing, creative fatigue, and week-over-week driver analysis |
 | `dashboard/` | Interactive Streamlit dashboard |
 | `airflow/` | Production scheduling with Airflow, backfills included |
 | `tests/` | 10 tests incl. full end-to-end, run on every push via GitHub Actions |
