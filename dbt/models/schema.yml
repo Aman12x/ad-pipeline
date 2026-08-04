@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: fact_ad_performance_daily
+    description: One row per (source, campaign, day) with platform and first-party metrics side by side
+    columns:
+      - name: source
+        tests: [not_null]
+      - name: campaign_id
+        tests: [not_null]
+      - name: stat_date
+        tests: [not_null]
+      - name: spend
+        tests: [not_null]
+
+  - name: mart_campaign_daily
+    description: Campaign-level daily efficiency (CTR, CAC, ROAS, overclaim)
+    columns:
+      - name: overclaim_ratio
+        description: platform_conversions / fp_conversions; >1 means the platform claims more than first-party truth
+
+  - name: mart_channel_daily
+    description: Channel-level daily rollup
+    columns:
+      - name: source
+        tests: [not_null]

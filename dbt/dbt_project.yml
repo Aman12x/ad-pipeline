@@ -1,0 +1,12 @@
+name: ad_pipeline
+version: "1.0.0"
+profile: ad_pipeline
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: target
+clean-targets: [target, dbt_packages]
+
+models:
+  ad_pipeline:
+    +materialized: table

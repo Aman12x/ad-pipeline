@@ -1,0 +1,8 @@
+ad_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # The pipeline passes its DB_PATH through; default matches pipeline/config.py
+      path: "{{ env_var('DB_PATH', 'data/warehouse.duckdb') }}"
+      threads: 1

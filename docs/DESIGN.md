@@ -28,7 +28,7 @@ flowchart LR
         R --> L[load<br/>normalize + validate]
         L --> DLQ[(rejected/<br/>dead letters)]
         L --> S[(staging<br/>upsert on PK)]
-        S --> T[transform] --> FA[(fact + marts)]
+        S --> T[dbt build<br/>models + tests] --> FA[(fact + marts)]
         FA --> Q[quality checks]
     end
     G & M & F --> E
@@ -37,8 +37,15 @@ flowchart LR
 ```
 
 Every run: pull trailing 14-day window → land raw JSON untouched (replayable)
-→ normalize/validate → upsert staging → rebuild fact + marts → data-quality
-gate → record run metadata in `pipeline_runs`.
+→ normalize/validate → upsert staging → `dbt build` (fact + mart models and
+their schema/singular tests) → data-quality gate → record run metadata in
+`pipeline_runs`.
+
+The transform layer lives in `dbt/`: staging tables are declared as dbt
+sources with column tests; `fact_ad_performance_daily` and the two marts are
+models; singular tests enforce cross-column invariants (PK uniqueness,
+clicks ≤ impressions, no negative metrics). A test failure fails the build,
+which fails the run — bad data never reaches the marts.
 
 ## From raw data to decision
 
@@ -78,8 +85,9 @@ not a dependency.
   design choice in any ad pipeline.
 - **Raw payloads landed before parsing** — any load bug can be replayed from
   disk without re-hitting (rate-limited) APIs.
-- **Fact/marts fully rebuilt from staging each run** — trivially idempotent;
-  incremental builds are a scale problem this data volume doesn't have yet.
+- **Fact/marts fully rebuilt from staging each run** (dbt `table`
+  materializations) — trivially idempotent; switching to dbt `incremental`
+  models is a scale problem this data volume doesn't have yet.
 - **First-party truth joined at (source, campaign, day)** via UTM tags —
   click-ID-level joins need click-level exports; campaign-day granularity
   answers the budget questions without them.

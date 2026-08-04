@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: pipeline
+    description: Staging tables maintained by pipeline/load.py (upserted per run)
+    schema: main
+    tables:
+      - name: stg_ad_stats
+        description: One row per (source, campaign, day), as reported by the platform at pull time
+        columns:
+          - name: source
+            tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: [google, meta]
+          - name: campaign_id
+            tests: [not_null]
+          - name: stat_date
+            tests: [not_null]
+      - name: stg_orders
+        description: First-party ground-truth orders, UTM-tagged
+        columns:
+          - name: order_id
+            tests: [not_null, unique]

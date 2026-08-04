@@ -48,7 +48,8 @@ account is a config change, not a rewrite.
 | Piece | What it does |
 |---|---|
 | `simulator/` | Fake Google Ads / Meta / orders APIs (FastAPI) |
-| `pipeline/` | Extract → validate → load → transform → quality checks (Python + DuckDB) |
+| `pipeline/` | Extract → validate → load → quality checks (Python + DuckDB) |
+| `dbt/` | Transform layer: staging → fact → marts as dbt models with data tests |
 | `dashboard/` | Interactive Streamlit dashboard |
 | `airflow/` | Production scheduling with Airflow, backfills included |
 | `tests/` | 10 tests incl. full end-to-end, run on every push via GitHub Actions |
@@ -68,9 +69,10 @@ pytest                                  #             run the test suite (~10s)
 
 ## Skills demonstrated
 
-Python · SQL (DuckDB) · API integration with retry/backoff · idempotent ETL
-design · data validation & quality gates · testing and CI (pytest, GitHub
-Actions) · orchestration (Airflow) · dashboarding (Streamlit, Plotly)
+Python · SQL (DuckDB) · dbt (models, sources, data tests) · API integration
+with retry/backoff · idempotent ETL design · data validation & quality gates ·
+testing and CI (pytest, GitHub Actions) · orchestration (Airflow) ·
+dashboarding (Streamlit, Plotly)
 
 Engineering details — schema design, idempotency strategy, why upserts instead
 of appends, the full failure-mode table — live in

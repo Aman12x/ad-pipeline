@@ -56,15 +56,8 @@ def ad_pipeline():
 
     @task
     def transform(counts: dict) -> dict:
-        import duckdb
-
-        from pipeline import config
-        from pipeline import transform as tf
-        con = duckdb.connect(config.DB_PATH)
-        try:
-            tf.transform(con)
-        finally:
-            con.close()
+        from pipeline import dbt_runner
+        dbt_runner.dbt_build()  # dbt models + schema/singular tests
         return counts
 
     @task
