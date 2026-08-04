@@ -39,6 +39,10 @@ genuinely hard to build:
   first-party "orders database" and reports the gap as its own metric.
 - **Data arrives dirty.** Malformed rows are quarantined with a reason
   instead of crashing the run or polluting the warehouse.
+- **Weird days need a human.** A quality stage flags any channel whose daily
+  spend jumps more than 3σ off its trailing baseline and raises an alert on
+  the dashboard — without blocking the pipeline, because unusual isn't the
+  same as wrong.
 
 Because the simulator's seams match the real APIs, swapping in a real ad
 account is a config change, not a rewrite.

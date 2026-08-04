@@ -100,6 +100,24 @@ st.title("Ad performance")
 st.caption(f"Data through {latest_str}. Efficiency metrics exclude {latest_str} "
            "(first-party orders land with a 1-day lag).")
 
+# Spend anomalies recorded by the pipeline's quality stage for the current day.
+try:
+    alerts = load("""
+        SELECT source, stat_date, observed_spend, baseline_mean, z_score
+        FROM quality_alerts
+        WHERE stat_date = (SELECT max(stat_date) FROM fact_ad_performance_daily)
+        ORDER BY abs(z_score) DESC
+    """)
+except Exception:  # older warehouse without the alerts table
+    alerts = pd.DataFrame()
+for _, a in alerts.iterrows():
+    st.warning(
+        f"**Spend anomaly** — {a['source'].capitalize()} spent "
+        f"${a['observed_spend']:,.0f} on {pd.Timestamp(a['stat_date']):%b %d}, "
+        f"vs a trailing-14-day average of ${a['baseline_mean']:,.0f} "
+        f"(z = {a['z_score']:+.1f}). Investigate before trusting today's numbers.",
+        icon="🚨")
+
 # ---- headline tiles ---------------------------------------------------------
 spend = mature_ch["spend"].sum()
 fp_conv = mature_ch["fp_conversions"].sum()

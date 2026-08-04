@@ -103,6 +103,13 @@ not a dependency.
 - **Quality checks as a pipeline stage** — PK uniqueness, non-negative
   metrics, clicks ≤ impressions, freshness — failing the run rather than
   publishing bad marts.
+- **Anomaly alerts are soft, integrity failures are hard** — the quality
+  stage also flags any channel whose latest daily spend sits >3σ from its
+  trailing-14-day baseline, records it in `quality_alerts`, and surfaces it
+  as a banner on the dashboard. It deliberately does *not* fail the run: an
+  unusual-but-real spend day is a signal for a human, not corrupt data, and
+  blocking the marts would hide the very numbers needed to investigate it.
+  (Cold start is handled: fewer than 7 baseline days → no claims.)
 - **The most recent day is excluded from efficiency metrics** — first-party
   orders land with a 1-day lag; showing a CAC computed on zero orders would
   be a lie. The dashboard says so instead.
