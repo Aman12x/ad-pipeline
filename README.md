@@ -18,8 +18,8 @@ keys, no setup beyond Python.**
 ![Platform overclaim](assets/overclaim.png)
 
 *Above: which campaigns pay for themselves (break-even line at 1.0), and how
-much each platform inflates its conversion numbers compared to actual orders —
-here, between 7% and 45%.*
+much each channel inflates its conversion numbers compared to actual orders —
+brand search barely (~2%), view-through-heavy campaigns by up to ~78%.*
 
 ## The interesting part
 

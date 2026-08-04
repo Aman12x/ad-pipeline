@@ -82,18 +82,30 @@ REQUIRED_TABLES = {"fact_ad_performance_daily", "mart_campaign_daily",
                    "mart_channel_pacing"}
 
 
-def _existing_tables() -> set:
+def _needs_seed() -> bool:
     if not DB_PATH.exists():
-        return set()
+        return True
     con = duckdb.connect(str(DB_PATH), read_only=True)
     try:
-        return {r[0] for r in con.execute(
+        tables = {r[0] for r in con.execute(
             "SELECT table_name FROM information_schema.tables").fetchall()}
+        if not REQUIRED_TABLES <= tables:
+            return True
+        if "seed_meta" in tables:
+            from scripts.seed_demo import SEED_VERSION
+            version = con.execute("SELECT version FROM seed_meta").fetchone()[0]
+            return version < SEED_VERSION
+        # seeded warehouse from before versioning existed (cloud) -> refresh;
+        # locally-built warehouses without the stamp also just get refreshed
+        return True
     finally:
         con.close()
 
 
-if not REQUIRED_TABLES <= _existing_tables():
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+if _needs_seed():
     # Build/refresh the warehouse in-process by replaying the last 3 daily
     # pipeline runs against the simulator (includes dbt build -> all marts).
     import sys

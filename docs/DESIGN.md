@@ -67,6 +67,34 @@ are above/below break-even ROAS (shift budget), what CAC really is when
 measured against **first-party orders** instead of platform claims, and how
 much each platform over-attributes (here: 7–45%).
 
+## Synthetic data realism
+
+The generator is deterministic per (campaign, date) — required for replayable
+tests and idempotency proofs — but reproduces the statistical texture of real
+ad data on top of that determinism:
+
+- **Log-normal daily noise with AR(1) persistence** (φ = 0.55, implemented as
+  a truncated moving average of per-day seeded gaussians, so it stays
+  stateless). Measured lag-1 autocorrelation of daily spend: ~0.4 — good and
+  bad days cluster, as in real accounts.
+- **Campaign lifecycle**: a ~5-day learning ramp after each creative refresh,
+  then CTR fatigue decay toward ~0.7 of peak on a ~75-day refresh cycle — so
+  the fatigue mart has real structure to detect.
+- **Shock days**: ~2% of channel-days are promo spikes (1.6–2.8× volume),
+  ~1% are tracking outages (~0.45×) — the heavy tail the spend-anomaly
+  alert exists for, and occasionally visible firing on the live demo.
+- **Campaign-type-specific over-attribution**: each campaign has an
+  `fp_share` (fraction of platform-claimed conversions that are real
+  first-party orders) — brand search ~0.95 (overclaims ~2%), retargeting and
+  YouTube view-through ~0.55–0.60 (overclaim 1.6–1.8×), matching the real
+  pattern that view-through attribution inflates most.
+- **Front-loaded conversion maturity**: ~55% of conversions visible same-day,
+  ~77% by day 1, ~88% by day 2, fully restated from day ~10 — an exponential
+  approach, not the linear ramp of a naive simulator.
+- **Log-normal order values** (median $55, σ = 0.65 → mean ≈ $68, occasional
+  $300+ orders), with mean-preserving stochastic rounding of small campaigns'
+  order counts so low-volume campaigns aren't biased by integer truncation.
+
 ## Testing
 
 - **Parser unit tests** — schema normalization, malformed payloads

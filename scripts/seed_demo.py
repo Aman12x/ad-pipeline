@@ -14,6 +14,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# Bump when the simulator's data generation changes materially: the dashboard
+# reseeds any warehouse stamped with an older version.
+SEED_VERSION = 2
+
 
 def seed() -> str:
     from fastapi.testclient import TestClient
@@ -43,6 +47,12 @@ def seed() -> str:
                 raise RuntimeError(f"seed run for {as_of} failed")
     finally:
         extract.fetch_with_retry = original
+
+    import duckdb
+    con = duckdb.connect(config.DB_PATH)
+    con.execute("CREATE OR REPLACE TABLE seed_meta AS SELECT ? AS version",
+                [SEED_VERSION])
+    con.close()
     return config.DB_PATH
 
 
