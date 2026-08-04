@@ -2,6 +2,8 @@
 
 ![CI](https://github.com/Aman12x/ad-pipeline/actions/workflows/ci.yml/badge.svg)
 
+**[▶ Live demo](https://ad-reporting-pipeline.streamlit.app)** — the dashboard, running on Streamlit Cloud, seeded by the pipeline itself.
+
 A complete, working ad analytics system: it pulls advertising data the way a
 real company would from Google Ads and Meta, cleans and stores it, and turns
 it into the numbers a marketing team uses to decide where money goes —
