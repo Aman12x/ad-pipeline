@@ -95,8 +95,9 @@ latest = channel["stat_date"].max()
 mature_ch = channel[channel["stat_date"] < latest]
 mature_cp = campaign[campaign["stat_date"] < latest]
 
+latest_str = pd.Timestamp(latest).strftime("%b %d, %Y")
 st.title("Ad performance")
-st.caption(f"Data through {latest}. Efficiency metrics exclude {latest} "
+st.caption(f"Data through {latest_str}. Efficiency metrics exclude {latest_str} "
            "(first-party orders land with a 1-day lag).")
 
 # ---- headline tiles ---------------------------------------------------------
