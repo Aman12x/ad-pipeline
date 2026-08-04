@@ -7,8 +7,9 @@
 A complete, working ad analytics system: it pulls advertising data the way a
 real company would from Google Ads and Meta, cleans and stores it, and turns
 it into the numbers a marketing team uses to decide where money goes —
-cost per customer, return on ad spend, and how much the ad platforms
-exaggerate their own results.
+cost per customer, return on ad spend, whether spend is pacing to budget,
+when ad creative is wearing out, and how much the ad platforms exaggerate
+their own results.
 
 **You can clone it and see it working in two minutes — no ad accounts, no API
 keys, no setup beyond Python.**
@@ -54,9 +55,9 @@ account is a config change, not a rewrite.
 | `simulator/` | Fake Google Ads / Meta / orders APIs (FastAPI) |
 | `pipeline/` | Extract → validate → load → quality checks (Python + DuckDB) |
 | `dbt/` | Transform layer: dbt models with data tests — fact table plus marts for CAC/ROAS, budget pacing, creative fatigue, and week-over-week driver analysis |
-| `dashboard/` | Interactive Streamlit dashboard |
+| `dashboard/` | Interactive Streamlit dashboard: efficiency charts, budget-pacing tiles, creative-fatigue view, anomaly banners |
 | `airflow/` | Production scheduling with Airflow, backfills included |
-| `tests/` | 10 tests incl. full end-to-end, run on every push via GitHub Actions |
+| `tests/` | 13 tests incl. full end-to-end and anomaly detection, run on every push via GitHub Actions |
 
 ## Try it
 
@@ -68,13 +69,14 @@ pip install -r requirements.txt -r requirements-dev.txt
 uvicorn simulator.app:app --port 8787   # terminal 1: the fake ad platforms
 python -m pipeline.run                  # terminal 2: run the pipeline
 streamlit run dashboard/app.py          #             open the dashboard
-pytest                                  #             run the test suite (~10s)
+pytest                                  #             run the test suite (~20s)
 ```
 
 ## Skills demonstrated
 
-Python · SQL (DuckDB) · dbt (models, sources, data tests) · API integration
-with retry/backoff · idempotent ETL design · data validation & quality gates ·
+Python · SQL (DuckDB — window functions, rolling metrics, WoW decomposition) ·
+dbt (models, sources, seeds, data tests) · API integration with retry/backoff ·
+idempotent ETL design · data validation & quality gates · anomaly detection ·
 testing and CI (pytest, GitHub Actions) · orchestration (Airflow) ·
 dashboarding (Streamlit, Plotly)
 
