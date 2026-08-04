@@ -74,14 +74,34 @@ def load(query: str) -> pd.DataFrame:
 
 st.set_page_config(page_title="Ad Analytics", page_icon="📈", layout="wide")
 
-if not DB_PATH.exists():
-    # No warehouse (e.g. fresh clone or Streamlit Cloud): build one in-process
-    # by replaying the last 3 daily pipeline runs against the simulator.
+# The dashboard needs these; a warehouse from an older code version may lack
+# the newer marts (cloud hot-updates keep the old DB file), so seed on any
+# missing table, not just on a missing file.
+REQUIRED_TABLES = {"fact_ad_performance_daily", "mart_campaign_daily",
+                   "mart_channel_daily", "mart_campaign_rolling",
+                   "mart_channel_pacing"}
+
+
+def _existing_tables() -> set:
+    if not DB_PATH.exists():
+        return set()
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+    try:
+        return {r[0] for r in con.execute(
+            "SELECT table_name FROM information_schema.tables").fetchall()}
+    finally:
+        con.close()
+
+
+if not REQUIRED_TABLES <= _existing_tables():
+    # Build/refresh the warehouse in-process by replaying the last 3 daily
+    # pipeline runs against the simulator (includes dbt build -> all marts).
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from scripts.seed_demo import seed
-    with st.spinner("First run — seeding demo warehouse (~10s)…"):
+    with st.spinner("Seeding demo warehouse (~15s)…"):
         seed()
+    load.clear()  # drop any cached queries from the stale warehouse
 
 channel = load("SELECT * FROM mart_channel_daily ORDER BY stat_date")
 campaign = load("SELECT * FROM mart_campaign_daily ORDER BY stat_date")
