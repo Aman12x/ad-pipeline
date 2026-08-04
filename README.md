@@ -52,7 +52,7 @@ account is a config change, not a rewrite.
 
 | Piece | What it does |
 |---|---|
-| `simulator/` | Fake Google Ads / Meta / orders APIs (FastAPI) |
+| `simulator/` | Synthetic Google Ads / Meta / orders APIs (FastAPI) |
 | `pipeline/` | Extract → validate → load → quality checks (Python + DuckDB) |
 | `dbt/` | Transform layer: dbt models with data tests — fact table plus marts for CAC/ROAS, budget pacing, creative fatigue, and week-over-week driver analysis |
 | `dashboard/` | Interactive Streamlit dashboard: efficiency charts, budget-pacing tiles, creative-fatigue view, anomaly banners |
@@ -66,7 +66,7 @@ git clone https://github.com/Aman12x/ad-pipeline && cd ad-pipeline
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 
-uvicorn simulator.app:app --port 8787   # terminal 1: the fake ad platforms
+uvicorn simulator.app:app --port 8787   # terminal 1: the synthetic ad platforms
 python -m pipeline.run                  # terminal 2: run the pipeline
 streamlit run dashboard/app.py          #             open the dashboard
 pytest                                  #             run the test suite (~20s)
