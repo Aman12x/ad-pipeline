@@ -113,6 +113,31 @@ c4.metric("Platform overclaim", f"{plat_conv / fp_conv:,.2f}×" if fp_conv else 
           help="Platform-reported conversions ÷ first-party orders. "
                ">1 means the platforms claim more conversions than actually happened.")
 
+# ---- budget pacing ----------------------------------------------------------
+pacing = load("""
+    SELECT source, mtd_spend, monthly_budget, expected_mtd_spend,
+           pacing_ratio, pacing_status
+    FROM mart_channel_pacing
+    WHERE stat_date = (SELECT max(stat_date) FROM mart_channel_pacing)
+    ORDER BY source
+""")
+if not pacing.empty:
+    st.subheader("Budget pacing — month to date")
+    status_word = {"over": "over plan", "under": "under plan",
+                   "on_track": "on track", "no_budget": "no budget set"}
+    cols = st.columns(len(pacing) + 2)
+    for col, (_, row) in zip(cols, pacing.iterrows()):
+        col.metric(
+            f"{row['source'].capitalize()} — {status_word[row['pacing_status']]}",
+            f"{row['pacing_ratio']:.0%}" if pd.notna(row["pacing_ratio"]) else "—",
+            delta=f"${row['mtd_spend'] - row['expected_mtd_spend']:+,.0f} vs plan",
+            help=f"${row['mtd_spend']:,.0f} spent of a "
+                 f"${row['monthly_budget']:,.0f} monthly budget; "
+                 f"prorated plan to date is ${row['expected_mtd_spend']:,.0f}.",
+        )
+    st.caption("100% = exactly on the prorated monthly budget. "
+               "Bands: over >110%, under <90%.")
+
 # ---- spend over time --------------------------------------------------------
 st.subheader("Daily spend by channel")
 fig = go.Figure()
@@ -160,6 +185,35 @@ with left:
 with right:
     campaign_bar(totals, "roas", "{:,.2f}",
                  "ROAS by campaign (first-party)", refline=1.0, ascending=False)
+
+# ---- creative fatigue -------------------------------------------------------
+fatigue = load("""
+    SELECT source, campaign_name, campaign_age_days, ctr_7d, ctr_vs_peak, cac_7d
+    FROM mart_campaign_rolling
+    WHERE stat_date = (SELECT max(stat_date) FROM mart_campaign_rolling)
+    ORDER BY ctr_vs_peak
+""")
+if not fatigue.empty:
+    st.subheader("Creative fatigue")
+    st.caption("Each campaign's rolling 7-day CTR as a fraction of its own "
+               "best. A sustained slide below the 0.8 line means the creative "
+               "is wearing out — refresh the ads.")
+    fig = go.Figure()
+    for ch in ("google", "meta"):
+        grp = fatigue[fatigue["source"] == ch]
+        fig.add_bar(y=grp["campaign_name"], x=grp["ctr_vs_peak"],
+                    orientation="h", name=ch.capitalize(),
+                    marker_color=CHANNEL_COLOR[ch],
+                    text=[f"{v:,.2f}" for v in grp["ctr_vs_peak"]],
+                    textposition="outside", textfont=dict(color=INK_2),
+                    hovertemplate="%{x:,.2f} of peak CTR<extra>%{y}</extra>")
+    fig.add_vline(x=0.8, line_width=1, line_dash="dot", line_color=MUTED,
+                  annotation_text="fatigue threshold",
+                  annotation_font_color=MUTED)
+    fig.update_layout(**LAYOUT, height=320, bargap=0.35,
+                      yaxis_categoryorder="trace")
+    fig.update_xaxes(range=[0, 1.12])
+    st.plotly_chart(fig, width='stretch')
 
 st.subheader("Platform overclaim by campaign")
 st.caption("Platform-attributed conversions ÷ first-party orders. Everything "
